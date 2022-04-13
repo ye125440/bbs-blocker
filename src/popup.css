@@ -22,11 +22,16 @@ body {
 .app {
     height: 100%;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    /* align-items: center; */
+    /* justify-content: center; */
     flex-direction: column;
-    text-align: center;
+    /* text-align: center; */
     padding: 20px;
+}
+
+.container {
+  display: flex;
+  align-items: center;
 }
 
 .title {
@@ -61,10 +66,16 @@ code {
     margin-top: 15px;
 }
 
+.input {
+  font-size: 16px;
+  padding: 6px 12px;
+  margin-right: 8px;
+}
+
 .button {
     border: 0;
     display: inline-block;
-    padding: 10px 20px;
+    padding: 6px 12px;
     margin-right: 4px;
     margin-left: 4px;
     background-color: bisque;

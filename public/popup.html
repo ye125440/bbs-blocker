@@ -7,17 +7,24 @@
 </head>
 <body>
   <div class="app">
-    <p class="counter-label">Counter</p>
-    <div id="counter" class="counter"></div>
+    <div class="container">
+      <input type="text" id="keyword" class="input" placeholder="输入想要屏蔽的关键字">
+      <button id="addBlockKeyword" class="button">添加</button>
+    </div>
+    <!-- <div id="counter" class="counter"></div>
     <div class="button-container">
       <button id="decrementBtn" class="button">-</button>
       <button id="incrementBtn" class="button">+</button>
-    </div>
+    </div> -->
 
     <hr class="divider" />
-
+<!-- 
     <p class="title">Chrome Extension is Ready!</p>
-    <p class="subtitle">Start by updating <code>popup.html</code></p>
+    <p class="subtitle">Start by updating <code>popup.html</code></p> -->
+    <div>
+      <ul id="blockList">
+      </ul>
+    </div>
   </div>
 
   <script src="popup.js"></script>

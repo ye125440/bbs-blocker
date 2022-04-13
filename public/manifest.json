@@ -17,7 +17,12 @@
     "default_popup": "popup.html"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "documentScan"
+  ],
+  "host_permissions": [
+    "http://bbs.oa.com/",
+    "https://bbs.oa.com/"
   ],
   "content_scripts": [
     {

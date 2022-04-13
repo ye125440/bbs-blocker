@@ -3,6 +3,99 @@
 import './popup.css';
 
 (function() {
+  const blockListStorage = {
+    get: cb => {
+      chrome.storage.sync.get(['blockList'], result => {
+        cb(result.blockList);
+      });
+    },
+    set: (value, cb) => {
+      chrome.storage.sync.set(
+        {
+          blockList: value,
+        },
+        () => {
+          cb();
+        }
+      );
+    },
+  }
+
+  function setupBlockList(defaultList = []) {
+    document.getElementById('addBlockKeyword').addEventListener('click', () => {
+      updateBlockList();
+    });
+    const blockUlList = document.getElementById('blockList');
+    defaultList.forEach(item => blockUlList.insertAdjacentHTML('afterbegin', renderItem(item)))
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      const tab = tabs[0];
+
+      chrome.tabs.sendMessage(
+        tab.id,
+        {
+          type: 'BLOCK',
+          payload: {
+            blockList: defaultList,
+          },
+        },
+        response => {
+          console.log('debug ~ file: popup.js ~ line 70 ~ setupBlockList ~ blockList', blockList);
+        }
+      );
+    });
+  }
+
+  function updateBlockList() {
+    const keywordText = document.getElementById('keyword').value;
+    if (!keywordText) return;
+    blockListStorage.get(blockList => {
+      if (blockList.includes(keywordText)) return;
+      blockListStorage.set([keywordText, ...blockList], () => {
+        const blockUlList = document.getElementById('blockList');
+        blockUlList.insertAdjacentHTML('afterbegin', renderItem(keywordText));
+      })
+    })
+  };
+
+  function renderItem(keyword) {
+    return `<li>${keyword}</li>`
+  }
+
+  function restoreBlockList() {
+    blockListStorage.get(blockList => {
+      if (typeof blockList === 'undefined') {
+        // Set blockList value as []
+        blockListStorage.set([], () => {
+          setupBlockList([]);
+        });
+      } else {
+        setupBlockList(blockList);
+      }
+    })
+  }
+
+  // document.addEventListener('DOMContentLoaded', restoreCounter);
+  document.addEventListener('DOMContentLoaded', restoreBlockList);
+
+  // Communicate with background file by sending a message
+  chrome.runtime.sendMessage(
+    {
+      type: 'GREETINGS',
+      payload: {
+        message: 'Hello, my name is BBS Blocker. I am from Popup.',
+      },
+    },
+    response => {
+      console.log(response.message);
+    }
+  );
+
+
+
+
+
+
+
   // We will make use of Storage API to get and store `count` value
   // More information on Storage API can we found at
   // https://developer.chrome.com/extensions/storage
@@ -27,7 +120,6 @@ import './popup.css';
       );
     },
   };
-
   function setupCounter(initialValue = 0) {
     document.getElementById('counter').innerHTML = initialValue;
 
@@ -49,9 +141,9 @@ import './popup.css';
       let newCount;
 
       if (type === 'INCREMENT') {
-        newCount = count + 1;
+        newCount = count + 3;
       } else if (type === 'DECREMENT') {
-        newCount = count - 1;
+        newCount = count - 3;
       } else {
         newCount = count;
       }
@@ -94,19 +186,4 @@ import './popup.css';
       }
     });
   }
-
-  document.addEventListener('DOMContentLoaded', restoreCounter);
-
-  // Communicate with background file by sending a message
-  chrome.runtime.sendMessage(
-    {
-      type: 'GREETINGS',
-      payload: {
-        message: 'Hello, my name is Pop. I am from Popup.',
-      },
-    },
-    response => {
-      console.log(response.message);
-    }
-  );
 })();
