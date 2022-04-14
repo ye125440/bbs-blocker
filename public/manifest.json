@@ -19,10 +19,6 @@
   "permissions": [
     "storage"
   ],
-  "host_permissions": [
-    "http://bbs.oa.com/",
-    "https://bbs.oa.com/"
-  ],
   "content_scripts": [
     {
       "matches": [
