@@ -33,13 +33,13 @@ import './popup.css';
       chrome.tabs.sendMessage(
         tab.id,
         {
-          type: 'BLOCK',
+          type: 'SETUP',
           payload: {
             blockList: defaultList,
           },
         },
         response => {
-          console.log('debug ~ file: popup.js ~ line 70 ~ setupBlockList ~ blockList', blockList);
+          console.log('debug ~ file: popup.js ~ line 42 ~ setupBlockList ~ response', response);
         }
       );
     });
@@ -54,11 +54,27 @@ import './popup.css';
         const blockUlList = document.getElementById('blockList');
         blockUlList.insertAdjacentHTML('afterbegin', renderItem(keywordText));
       })
+      chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        const tab = tabs[0];
+  
+        chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type: 'APPLY',
+            payload: {
+              blockList: [keywordText, ...blockList],
+            },
+          },
+          response => {
+            console.log('Current blockList value passed to contentScript file');
+          }
+        );
+      });
     })
   };
 
   function renderItem(keyword) {
-    return `<li>${keyword}</li>`
+    return `<span class="tag">${keyword}</span>`
   }
 
   function restoreBlockList() {
@@ -86,7 +102,7 @@ import './popup.css';
       },
     },
     response => {
-      console.log(response.message);
+      console.log('debug ~ file: popup.js ~ line 103 ~ response', response);
     }
   );
 

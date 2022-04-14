@@ -87,8 +87,43 @@ code {
     user-select: none;
 }
 
+.list {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tag {
+  border: 0;
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 4px;
+  /* margin-left: 4px; */
+  background-color: rgb(216, 27, 27);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: transform .2s ease;
+  user-select: none;
+}
+
+.checkbox {
+  margin-left: 8px;
+}
+
+.align {
+  vertical-align: middle;
+}
+
 .button:focus {
-    outline: none;
+  outline: none;
+}
+
+.tag:focus {
+  outline: none;
 }
 
 .button:hover {

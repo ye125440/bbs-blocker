@@ -18,7 +18,8 @@
   },
   "permissions": [
     "storage",
-    "documentScan"
+    "documentScan",
+    "activeTab"
   ],
   "host_permissions": [
     "http://bbs.oa.com/",
