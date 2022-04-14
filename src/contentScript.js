@@ -98,10 +98,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 function applyBlock(enable, blockList = []) {
   const tableEl = document.querySelectorAll('.bbs_table > tbody > tr');
-  console.log(
-    'debug ~ file: contentScript.js ~ line 94 ~ applyBlock ~ tableEl',
-    tableEl,
-  );
   let blockedList = [];
   tableEl.forEach((el) => {
     const titleEl = el.querySelector('a');
