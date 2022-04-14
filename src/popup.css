@@ -92,7 +92,7 @@ code {
 }
 
 .list {
-  margin-top: 20px;
+  margin: 20px 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;

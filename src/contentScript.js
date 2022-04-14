@@ -18,8 +18,8 @@ console.log(
 );
 
 const enableStorage = {
-  get: cb => {
-    chrome.storage.sync.get(['enable'], result => {
+  get: (cb) => {
+    chrome.storage.sync.get(['enable'], (result) => {
       cb(result.enable);
     });
   },
@@ -30,14 +30,14 @@ const enableStorage = {
       },
       () => {
         cb();
-      }
+      },
     );
   },
-}
+};
 
 const blockListStorage = {
-  get: cb => {
-    chrome.storage.sync.get(['blockList'], result => {
+  get: (cb) => {
+    chrome.storage.sync.get(['blockList'], (result) => {
       cb(result.blockList);
     });
   },
@@ -48,35 +48,46 @@ const blockListStorage = {
       },
       () => {
         cb();
-      }
+      },
     );
   },
-}
+};
 
 // Communicate with background file by sending a message
-chrome.runtime.sendMessage(
-  {
-    type: 'GREETINGS',
-    payload: {
-      message: 'Hello, my name is Con. I am from ContentScript.',
-    },
-  },
-  (response) => {
-    console.log('debug ~ file: contentScript.js ~ line 29 ~ response', response);
-  },
-);
+// chrome.runtime.sendMessage(
+//   {
+//     type: 'GREETINGS',
+//     payload: {
+//       message: 'Hello, my name is Con. I am from ContentScript.',
+//     },
+//   },
+//   (response) => {
+//     console.log('debug ~ file: contentScript.js ~ line 29 ~ response', response);
+//   },
+// );
 
 // Listen for message
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('debug ~ file: contentScript.js ~ line 71 ~ chrome.runtime.onMessage.addListener ~ request', request.payload);
   if (request.type === 'SETUP') {
     console.log('APPLY', `当前屏蔽词为 ${request.payload.blockList.join(';')}`);
-    enableStorage.get(enable => applyBlock(enable, request.payload.blockList));
+    enableStorage.get((enable) =>
+      applyBlock(enable, request.payload.blockList),
+    );
   }
 
   if (request.type === 'APPLY') {
     console.log('APPLY', `当前屏蔽词为 ${request.payload.blockList.join(';')}`);
-    enableStorage.get(enable => applyBlock(enable, request.payload.blockList));
+    enableStorage.get((enable) =>
+      applyBlock(enable, request.payload.blockList),
+    );
+  }
+
+  if (request.type === 'TEST') {
+    console.log('TEST', `当前屏蔽词为 ${request.payload.blockList.join(';')}`);
+    console.log(
+      'debug ~ file: contentScript.js ~ line 84 ~ chrome.runtime.onMessage.addListener ~ request.payload',
+      request.payload,
+    );
   }
 
   // Send an empty response
@@ -87,26 +98,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 function applyBlock(enable, blockList = []) {
   const tableEl = document.querySelectorAll('.bbs_table > tbody > tr');
+  console.log(
+    'debug ~ file: contentScript.js ~ line 94 ~ applyBlock ~ tableEl',
+    tableEl,
+  );
   let blockedList = [];
   tableEl.forEach((el) => {
     const titleEl = el.querySelector('a');
-    if (blockList.some(keyword => titleEl.title.includes(keyword))) {
-      blockedList.push(el)
-      el.style.display = enable ? 'none' : 'table-row';
+    if (blockList.some((keyword) => titleEl.title.includes(keyword))) {
+      blockedList.push(el);
+      el.style.display = 'none';
     }
+    if (!enable || blockedList.length === 0) el.style.display = 'table-row';
   });
-  const blockResultEl = document.querySelector('#blockResult')
-  blockResultEl.innerHTML = enable ? `共屏蔽${blockedList.length}条。` : '勾选启动屏蔽';
-  console.table(blockedList);
+  const blockResultEl = document.querySelector('#blockResult');
+  blockResultEl.innerHTML = enable
+    ? `共屏蔽${blockedList.length}条。`
+    : '勾选启动屏蔽';
 }
 
 function restoreCheckbox() {
-  enableStorage.get(enable => {
+  enableStorage.get((enable) => {
     if (typeof enable === 'undefined') {
-      enableStorage.set(false, () => setupCheckbox(false))
+      enableStorage.set(false, () => setupCheckbox(false));
     } else {
       setupCheckbox(enable);
-      blockListStorage.get(blockList => applyBlock(enable, blockList));
+      blockListStorage.get((blockList) => applyBlock(enable, blockList));
     }
   });
 }
@@ -123,12 +140,14 @@ function renderCheckbox(checked = false) {
     <span style="margin-left: 4px">
       <input style="vertical-align: middle" id="blockSwitch" type="checkbox" checked=${checked} />
       <span style="vertical-align: middle" id="blockResult"></span>
-    </span>`
+    </span>`;
 }
 
 function checkChange(evt) {
   const checked = evt.target.checked;
-  enableStorage.set(checked, blockListStorage.get(blockList => applyBlock(checked, blockList)))
+  enableStorage.set(checked, () =>
+    blockListStorage.get((blockList) => applyBlock(checked, blockList)),
+  );
 }
 
 restoreCheckbox();

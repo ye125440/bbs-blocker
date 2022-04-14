@@ -26,9 +26,14 @@ import './popup.css';
       updateBlockList();
     });
     const blockListEl = document.getElementById('blockList');
+    console.log(
+      'debug ~ file: popup.js ~ line 29 ~ setupBlockList ~ blockListEl',
+      blockListEl,
+    );
     defaultList.forEach((item) =>
       blockListEl.insertAdjacentHTML('afterbegin', renderItem(item)),
     );
+    blockListEl.addEventListener('click', blockListClick);
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
 
@@ -45,67 +50,70 @@ import './popup.css';
     });
   }
 
-  function deleteTag(evt) {
-    console.log('debug ~ file: popup.js ~ line 49 ~ deleteTag ~ evt', evt);
+  function blockListClick({ target }) {
+    const role = target.getAttribute('role');
+    if (!role) return;
     blockListStorage.get((blockList) => {
-      // blockListStorage.set(blockList, () => {
-      //   const blockListEl = document.getElementById('blockList');
-      //   blockListEl.insertAdjacentHTML('afterbegin', renderItem(keywordText));
-      //   const tags = blockListEl.querySelectorAll('span');
-      //   tags.forEach((tag) => tag.addEventListener('click', deleteTag));
-      // });
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
+      const newList = blockList.filter((keyword) => keyword !== role);
+      console.log('debug ~ file: popup.js ~ line 58 ~ blockListStorage.get ~ newList', newList);
+      blockListStorage.set(newList, () => {
+        const blockListEl = document.getElementById('blockList');
+        blockListEl.removeChild(target);
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const tab = tabs[0];
 
-        chrome.tabs.sendMessage(
-          tab.id,
-          {
-            type: 'APPLY',
-            payload: {
-              blockList,
-              evt,
+          chrome.tabs.sendMessage(
+            tab.id,
+            {
+              type: 'APPLY',
+              payload: {
+                blockList: newList,
+              },
             },
-          },
-          (response) => {
-            console.log('Current blockList value passed to contentScript file');
-          },
-        );
+            (response) => {
+              console.log(
+                'Current blockList value passed to contentScript file',
+              );
+            },
+          );
+        });
       });
     });
   }
 
   function updateBlockList() {
-    const keywordText = document.getElementById('keyword').value;
+    const inputEl = document.getElementById('keyword');
+    const keywordText = inputEl.value;
     if (!keywordText) return;
     blockListStorage.get((blockList) => {
       if (blockList.includes(keywordText)) return;
       blockListStorage.set([keywordText, ...blockList], () => {
         const blockListEl = document.getElementById('blockList');
         blockListEl.insertAdjacentHTML('afterbegin', renderItem(keywordText));
-        const tags = blockListEl.querySelectorAll('span');
-        tags.forEach((tag) => tag.addEventListener('click', deleteTag));
-      });
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs[0];
-
-        chrome.tabs.sendMessage(
-          tab.id,
-          {
-            type: 'APPLY',
-            payload: {
-              blockList: [keywordText, ...blockList],
+        inputEl.value = '';
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const tab = tabs[0];
+          chrome.tabs.sendMessage(
+            tab.id,
+            {
+              type: 'APPLY',
+              payload: {
+                blockList: [keywordText, ...blockList],
+              },
             },
-          },
-          (response) => {
-            console.log('Current blockList value passed to contentScript file');
-          },
-        );
+            (response) => {
+              console.log(
+                'Current blockList value passed to contentScript file',
+              );
+            },
+          );
+        });
       });
     });
   }
 
   function renderItem(keyword) {
-    return `<span id=${keyword} class="tag">${keyword}</span>`;
+    return `<span role=${keyword} class="tag">${keyword}</span>`;
   }
 
   function restoreBlockList() {
@@ -144,87 +152,4 @@ import './popup.css';
   // To get storage access, we have to mention it in `permissions` property of manifest.json file
   // More information on Permissions can we found at
   // https://developer.chrome.com/extensions/declare_permissions
-  const counterStorage = {
-    get: (cb) => {
-      chrome.storage.sync.get(['count'], (result) => {
-        cb(result.count);
-      });
-    },
-    set: (value, cb) => {
-      chrome.storage.sync.set(
-        {
-          count: value,
-        },
-        () => {
-          cb();
-        },
-      );
-    },
-  };
-  function setupCounter(initialValue = 0) {
-    document.getElementById('counter').innerHTML = initialValue;
-
-    document.getElementById('incrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'INCREMENT',
-      });
-    });
-
-    document.getElementById('decrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'DECREMENT',
-      });
-    });
-  }
-
-  function updateCounter({ type }) {
-    counterStorage.get((count) => {
-      let newCount;
-
-      if (type === 'INCREMENT') {
-        newCount = count + 3;
-      } else if (type === 'DECREMENT') {
-        newCount = count - 3;
-      } else {
-        newCount = count;
-      }
-
-      counterStorage.set(newCount, () => {
-        document.getElementById('counter').innerHTML = newCount;
-
-        // Communicate with content script of
-        // active tab by sending a message
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const tab = tabs[0];
-
-          chrome.tabs.sendMessage(
-            tab.id,
-            {
-              type: 'COUNT',
-              payload: {
-                count: newCount,
-              },
-            },
-            (response) => {
-              console.log('Current count value passed to contentScript file');
-            },
-          );
-        });
-      });
-    });
-  }
-
-  function restoreCounter() {
-    // Restore count value
-    counterStorage.get((count) => {
-      if (typeof count === 'undefined') {
-        // Set counter value as 0
-        counterStorage.set(0, () => {
-          setupCounter(0);
-        });
-      } else {
-        setupCounter(count);
-      }
-    });
-  }
 })();
