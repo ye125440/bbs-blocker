@@ -2,10 +2,10 @@
 
 import './popup.css';
 
-(function() {
+(function () {
   const blockListStorage = {
-    get: cb => {
-      chrome.storage.sync.get(['blockList'], result => {
+    get: (cb) => {
+      chrome.storage.sync.get(['blockList'], (result) => {
         cb(result.blockList);
       });
     },
@@ -16,18 +16,20 @@ import './popup.css';
         },
         () => {
           cb();
-        }
+        },
       );
     },
-  }
+  };
 
   function setupBlockList(defaultList = []) {
     document.getElementById('addBlockKeyword').addEventListener('click', () => {
       updateBlockList();
     });
-    const blockUlList = document.getElementById('blockList');
-    defaultList.forEach(item => blockUlList.insertAdjacentHTML('afterbegin', renderItem(item)))
-    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+    const blockListEl = document.getElementById('blockList');
+    defaultList.forEach((item) =>
+      blockListEl.insertAdjacentHTML('afterbegin', renderItem(item)),
+    );
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
 
       chrome.tabs.sendMessage(
@@ -38,25 +40,54 @@ import './popup.css';
             blockList: defaultList,
           },
         },
-        response => {
-          console.log('debug ~ file: popup.js ~ line 42 ~ setupBlockList ~ response', response);
-        }
+        (response) => {},
       );
+    });
+  }
+
+  function deleteTag(evt) {
+    console.log('debug ~ file: popup.js ~ line 49 ~ deleteTag ~ evt', evt);
+    blockListStorage.get((blockList) => {
+      // blockListStorage.set(blockList, () => {
+      //   const blockListEl = document.getElementById('blockList');
+      //   blockListEl.insertAdjacentHTML('afterbegin', renderItem(keywordText));
+      //   const tags = blockListEl.querySelectorAll('span');
+      //   tags.forEach((tag) => tag.addEventListener('click', deleteTag));
+      // });
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+
+        chrome.tabs.sendMessage(
+          tab.id,
+          {
+            type: 'APPLY',
+            payload: {
+              blockList,
+              evt,
+            },
+          },
+          (response) => {
+            console.log('Current blockList value passed to contentScript file');
+          },
+        );
+      });
     });
   }
 
   function updateBlockList() {
     const keywordText = document.getElementById('keyword').value;
     if (!keywordText) return;
-    blockListStorage.get(blockList => {
+    blockListStorage.get((blockList) => {
       if (blockList.includes(keywordText)) return;
       blockListStorage.set([keywordText, ...blockList], () => {
-        const blockUlList = document.getElementById('blockList');
-        blockUlList.insertAdjacentHTML('afterbegin', renderItem(keywordText));
-      })
-      chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        const blockListEl = document.getElementById('blockList');
+        blockListEl.insertAdjacentHTML('afterbegin', renderItem(keywordText));
+        const tags = blockListEl.querySelectorAll('span');
+        tags.forEach((tag) => tag.addEventListener('click', deleteTag));
+      });
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs[0];
-  
+
         chrome.tabs.sendMessage(
           tab.id,
           {
@@ -65,20 +96,20 @@ import './popup.css';
               blockList: [keywordText, ...blockList],
             },
           },
-          response => {
+          (response) => {
             console.log('Current blockList value passed to contentScript file');
-          }
+          },
         );
       });
-    })
-  };
+    });
+  }
 
   function renderItem(keyword) {
-    return `<span class="tag">${keyword}</span>`
+    return `<span id=${keyword} class="tag">${keyword}</span>`;
   }
 
   function restoreBlockList() {
-    blockListStorage.get(blockList => {
+    blockListStorage.get((blockList) => {
       if (typeof blockList === 'undefined') {
         // Set blockList value as []
         blockListStorage.set([], () => {
@@ -87,7 +118,7 @@ import './popup.css';
       } else {
         setupBlockList(blockList);
       }
-    })
+    });
   }
 
   // document.addEventListener('DOMContentLoaded', restoreCounter);
@@ -101,16 +132,10 @@ import './popup.css';
         message: 'Hello, my name is BBS Blocker. I am from Popup.',
       },
     },
-    response => {
+    (response) => {
       console.log('debug ~ file: popup.js ~ line 103 ~ response', response);
-    }
+    },
   );
-
-
-
-
-
-
 
   // We will make use of Storage API to get and store `count` value
   // More information on Storage API can we found at
@@ -120,8 +145,8 @@ import './popup.css';
   // More information on Permissions can we found at
   // https://developer.chrome.com/extensions/declare_permissions
   const counterStorage = {
-    get: cb => {
-      chrome.storage.sync.get(['count'], result => {
+    get: (cb) => {
+      chrome.storage.sync.get(['count'], (result) => {
         cb(result.count);
       });
     },
@@ -132,7 +157,7 @@ import './popup.css';
         },
         () => {
           cb();
-        }
+        },
       );
     },
   };
@@ -153,7 +178,7 @@ import './popup.css';
   }
 
   function updateCounter({ type }) {
-    counterStorage.get(count => {
+    counterStorage.get((count) => {
       let newCount;
 
       if (type === 'INCREMENT') {
@@ -169,7 +194,7 @@ import './popup.css';
 
         // Communicate with content script of
         // active tab by sending a message
-        chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           const tab = tabs[0];
 
           chrome.tabs.sendMessage(
@@ -180,9 +205,9 @@ import './popup.css';
                 count: newCount,
               },
             },
-            response => {
+            (response) => {
               console.log('Current count value passed to contentScript file');
-            }
+            },
           );
         });
       });
@@ -191,7 +216,7 @@ import './popup.css';
 
   function restoreCounter() {
     // Restore count value
-    counterStorage.get(count => {
+    counterStorage.get((count) => {
       if (typeof count === 'undefined') {
         // Set counter value as 0
         counterStorage.set(0, () => {

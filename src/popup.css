@@ -72,6 +72,10 @@ code {
   margin-right: 8px;
 }
 
+.mt-10 {
+  margin-top: 10px;
+}
+
 .button {
     border: 0;
     display: inline-block;

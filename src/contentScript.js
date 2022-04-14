@@ -68,14 +68,15 @@ chrome.runtime.sendMessage(
 
 // Listen for message
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('debug ~ file: contentScript.js ~ line 71 ~ chrome.runtime.onMessage.addListener ~ request', request.payload);
   if (request.type === 'SETUP') {
     console.log('APPLY', `当前屏蔽词为 ${request.payload.blockList.join(';')}`);
-    enableStorage.get(enable => applyBlock(enable, blockList));
+    enableStorage.get(enable => applyBlock(enable, request.payload.blockList));
   }
 
   if (request.type === 'APPLY') {
     console.log('APPLY', `当前屏蔽词为 ${request.payload.blockList.join(';')}`);
-    enableStorage.get(enable => applyBlock(enable, blockList));
+    enableStorage.get(enable => applyBlock(enable, request.payload.blockList));
   }
 
   // Send an empty response
