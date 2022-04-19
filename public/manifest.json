@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BBS Blocker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A extension that helps you to block certain posts that has keywords you configured in it's title.(only works for http://bbs.oa.com/)",
   "icons": {
     "16": "icons/icon_16.png",
